@@ -1,0 +1,31 @@
+name: Handle Issue Webhooks from Frontend and Backend
+
+on:
+  repository_dispatch:
+    types: [issue_event]  # Custom event from webhooks in other repos
+
+jobs:
+  process_issue_event:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check Event Data
+        id: check_data
+        run: |
+          echo "Processing issue event from ${{ github.event.client_payload.repo }} repository"
+          echo "Issue number: ${{ github.event.client_payload.issue_number }}"
+          
+      - name: Fetch Issue Details
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issueDetails = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.payload.client_payload.repo,
+              issue_number: context.payload.client_payload.issue_number
+            });
+
+            console.log("Issue Title: ", issueDetails.data.title);
+            console.log("Issue State: ", issueDetails.data.state);
+
+      # Add further actions or processing based on the issue event here
